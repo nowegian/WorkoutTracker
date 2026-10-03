@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>My Gym Plan</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--bg:#f2f5f7;--card:#fff;--ink:#14222e;--mute:#5b6b78;--line:#d9e1e7;--accent:#0f6b8a;--on:#fff;--warn:#fff3d6;--warnink:#6b4a00;--done:#e3f3ea}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1820;--card:#17252f;--ink:#e8eef2;--mute:#9ab0bf;--line:#2a3d4a;--accent:#4fb6d6;--on:#06222d;--warn:#3a2f10;--warnink:#f3d98b;--done:#17372a}}
+:root[data-theme="dark"]{--bg:#0e1820;--card:#17252f;--ink:#e8eef2;--mute:#9ab0bf;--line:#2a3d4a;--accent:#4fb6d6;--on:#06222d;--warn:#3a2f10;--warnink:#f3d98b;--done:#17372a}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*:before,*:after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:560px;margin:0 auto;padding:16px 14px 40px}
+h1{font-size:28px;margin:6px 0 2px;letter-spacing:-.5px}
+h2{font-size:18px;margin:22px 0 8px}
+.sub{color:var(--mute);margin:0 0 14px}
+.seg{display:flex;background:var(--line);border-radius:12px;padding:3px;gap:3px}
+.seg button{flex:1;border:0;background:none;color:var(--ink);font:inherit;font-size:15px;padding:10px 4px;border-radius:10px;min-height:44px}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--on);font-weight:600}
+.goal{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:12px 0}
+.item{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:8px 0}
+.item.done{background:var(--done)}
+.row{display:flex;align-items:center;gap:12px}
+.row label.chk{display:flex;align-items:center;gap:12px;flex:1;min-width:0}
+input[type=checkbox]{width:28px;height:28px;accent-color:var(--accent);flex:none}
+.name{font-weight:600}
+.note{color:var(--mute);font-size:14px}
+.wt{display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap}
+.wt input[type=number]{width:92px;font:inherit;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink)}
+.sets{display:flex;gap:8px;margin-left:auto}
+.sets input{width:30px;height:30px}
+.last{color:var(--mute);font-size:14px}
+button.main{width:100%;margin-top:16px;padding:16px;font:inherit;font-weight:600;border:0;border-radius:12px;background:var(--accent);color:var(--on);min-height:52px}
+button.ghost{background:none;border:1px solid var(--line);color:var(--ink);padding:10px 14px;border-radius:10px;font:inherit;font-size:15px;min-height:44px}
+.warn{background:var(--warn);color:var(--warnink);border-radius:12px;padding:12px 14px;margin:8px 0;font-size:15px}
+.warn ul{margin:6px 0 0;padding-left:20px}
+.hist{font-size:15px}
+.hist div{padding:8px 0;border-bottom:1px solid var(--line)}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+</style>
+</head>
+<body>
+<main>
+<h1>My Gym Plan</h1>
+<p class="sub">Fri evening · Sun · Tue evening — same workout each day, about 40–45 minutes.</p>
+
+<div class="seg" id="phase" role="group" aria-label="Plan phase"></div>
+<div class="goal" id="goal"></div>
+
+<h2>Today's workout</h2>
+<div id="list"></div>
+<button class="main" id="finish">Save today's workout</button>
+
+<h2>Rules of the road</h2>
+<div class="warn">
+<strong>Stop and get medical help</strong> for chest pain or pressure, dizziness, unusual shortness of breath, or sharp joint pain.
+</div>
+<div class="goal">
+<ul style="margin:0;padding-left:20px">
+<li>Adjust the seat and pads on each machine first. Staff at Planet Fitness will help.</li>
+<li>Push for about 2 seconds, return for 3. Breathe out on the effort. Never hold your breath.</li>
+<li>Left shoulder: on chest press and row, go light, stay pain-free, stop if it pinches.</li>
+<li>Add 5 lbs only when 12 reps feel easy.</li>
+<li>Walk 10–15 minutes on off days to build stamina.</li>
+</ul>
+</div>
+
+<h2>History</h2>
+<div class="hist" id="hist"></div>
+<button class="ghost" id="reset" style="margin-top:12px">Clear all data</button>
+</main>
+
+<script>
+var PH=[
+{k:"Weeks 1–2",sets:1,reps:"10–12",cardio:10,txt:"Learn the machines with very light weight. 1 set each."},
+{k:"Weeks 3–4",sets:2,reps:"10–12",cardio:"10–15",txt:"2 sets each. Rest 60–90 seconds between sets."},
+{k:"Weeks 5–8",sets:3,reps:"10–12",cardio:"15–20",txt:"Work up from 2 to 3 sets. Add 5 lbs when 12 reps feel easy."}];
+var MA=[
+["Leg press","Legs and glutes"],
+["Chest press","Light weight, small range of motion"],
+["Seated row","Back and arms. Protect your left shoulder"],
+["Leg curl","Back of the thighs"],
+["Leg extension","Front of the thighs"],
+["Ab crunch","Very light weight. Relax your neck, let abs do the work"]];
+var S={phase:0,log:[],last:{}};
+function load(){try{var s=localStorage.getItem("gymplan");if(s)S=Object.assign(S,JSON.parse(s))}catch(e){}}
+function save(){try{localStorage.setItem("gymplan",JSON.stringify(S))}catch(e){}}
+var cur={}; // today's checks and weights
+function el(t,c,h){var e=document.createElement(t);if(c)e.className=c;if(h!=null)e.innerHTML=h;return e}
+function render(){
+ var p=PH[S.phase],seg=document.getElementById("phase");seg.innerHTML="";
+ PH.forEach(function(x,i){var b=el("button","",x.k);b.setAttribute("aria-pressed",i==S.phase);b.onclick=function(){S.phase=i;save();render()};seg.appendChild(b)});
+ document.getElementById("goal").innerHTML="<strong>"+p.sets+" set"+(p.sets>1?"s":"")+" × "+p.reps+" reps.</strong> Cardio: "+p.cardio+" min. "+p.txt;
+ var L=document.getElementById("list");L.innerHTML="";
+ simple(L,"warm","Warm-up · 5 min","Easy treadmill walk or recumbent bike");
+ MA.forEach(function(m,i){
+  var id="m"+i,box=el("div","item"+(cur[id]&&cur[id].done?" done":""));
+  var r=el("div","row"),lb=el("label","chk"),cb=document.createElement("input");cb.type="checkbox";cb.checked=!!(cur[id]&&cur[id].done);
+  cb.onchange=function(){cur[id]=cur[id]||{};cur[id].done=cb.checked;box.classList.toggle("done",cb.checked)};
+  var tx=el("div","","<div class='name'>"+m[0]+"</div><div class='note'>"+m[1]+"</div>");
+  lb.appendChild(cb);lb.appendChild(tx);r.appendChild(lb);box.appendChild(r);
+  var w=el("div","wt"),inp=document.createElement("input");inp.type="number";inp.inputMode="decimal";inp.placeholder="lbs";inp.value=(cur[id]&&cur[id].w)||"";
+  inp.oninput=function(){cur[id]=cur[id]||{};cur[id].w=inp.value};
+  w.appendChild(inp);w.appendChild(el("span","last",S.last[id]?"Last: "+S.last[id]+" lbs":"No weight logged yet"));
+  box.appendChild(w);L.appendChild(box)});
+ simple(L,"cardio","Cardio · "+p.cardio+" min","Treadmill, bike, or elliptical at a pace where you can talk in full sentences");
+ simple(L,"cool","Cool-down · 5 min","Slow walking, then light stretching");
+ var H=document.getElementById("hist");H.innerHTML="";
+ if(!S.log.length)H.innerHTML="<div class='note'>Saved workouts will show up here.</div>";
+ S.log.slice().reverse().slice(0,12).forEach(function(e){H.appendChild(el("div","","<strong>"+e.d+"</strong> · "+e.n+" of 9 steps done"+(e.w?"<br><span class='note'>"+e.w+"</span>":"")))});
+}
+function simple(L,id,t,n){
+ var box=el("div","item"+(cur[id]?" done":"")),lb=el("label","chk"),cb=document.createElement("input");cb.type="checkbox";cb.checked=!!cur[id];
+ cb.onchange=function(){cur[id]=cb.checked;box.classList.toggle("done",cb.checked)};
+ lb.appendChild(cb);lb.appendChild(el("div","","<div class='name'>"+t+"</div><div class='note'>"+n+"</div>"));
+ var r=el("div","row");r.appendChild(lb);box.appendChild(r);L.appendChild(box)}
+document.getElementById("finish").onclick=function(){
+ var n=0,ws=[];["warm","cardio","cool"].forEach(function(k){if(cur[k])n++});
+ MA.forEach(function(m,i){var c=cur["m"+i];if(c&&c.done)n++;if(c&&c.w){S.last["m"+i]=c.w;ws.push(m[0]+" "+c.w)}});
+ S.log.push({d:new Date().toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"}),n:n,w:ws.join(", ")});
+ cur={};save();render();window.scrollTo(0,0)};
+document.getElementById("reset").onclick=function(){if(confirm("Delete all saved weights and history?")){S={phase:0,log:[],last:{}};cur={};save();render()}};
+load();render();
+</script>
+</body>
+</html>
